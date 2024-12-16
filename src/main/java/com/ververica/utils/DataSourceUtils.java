@@ -17,7 +17,7 @@ public class DataSourceUtils {
 
     public static ClickEvent toClickEvent(String line) {
         String[] tokens = line.split(",", -1);
-        var timestamp = Timestamp.valueOf(tokens[0].replace(" UTC", ""));
+        Timestamp timestamp = Timestamp.valueOf(tokens[0].replace(" UTC", ""));
         if (tokens[8].equals("")) {
             tokens[8] = "dd5a3d71-0fb8-4c62-a046-cf234dd6e2b5";
         }

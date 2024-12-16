@@ -32,7 +32,7 @@ public class EcommerceCEPRunner {
         StreamExecutionEnvironment environment =
                 StreamExecutionEnvironment.getExecutionEnvironment();
 
-        var properties = buildSecurityProps(new Properties());
+        Properties properties = buildSecurityProps(new Properties());
 
         // 1. Create a Kafka/Flink Consumer
         KafkaSource<ClickEvent> clickstreamKafkaSource = createClickEventConsumer(properties);
@@ -79,7 +79,7 @@ public class EcommerceCEPRunner {
 
                 // Check if the categories are different
                 if (!firstView.getCategoryCode().equals(secondView.getCategoryCode())) {
-                    var message = "Cross-sell opportunity detected for user " + firstView.getUserId() +
+                    String message = "Cross-sell opportunity detected for user " + firstView.getUserId() +
                             ": viewed products in categories " + firstView.getCategoryCode() + " and " + secondView.getCategoryCode();
 
                     return new Alert(secondView.getUserSession(), secondView.getUserId(), AlertType.CROSS_UPSELL, message);
@@ -114,7 +114,7 @@ public class EcommerceCEPRunner {
                     public Alert timeout(Map<String, List<ClickEvent>> pattern, long timeoutTimestamp) {
                         ClickEvent cartAdd = pattern.get("cart_add").get(0);
 
-                        var message = "High-value cart abandonment detected for user '" + cartAdd.getUserId() + "' priced at " + cartAdd.getPrice() +
+                        String message = "High-value cart abandonment detected for user '" + cartAdd.getUserId() + "' priced at " + cartAdd.getPrice() +
                                 ". No purchase within 30 minutes.";
 
                         return new Alert(cartAdd.getUserSession(), cartAdd.getUserId(), AlertType.CART_ABANDONMENT, message);
@@ -125,7 +125,7 @@ public class EcommerceCEPRunner {
                         ClickEvent cartAdd = pattern.get("cart_add").get(0);
                         ClickEvent purchase = pattern.get("purchase").get(0);
 
-                        var message = "Purchase completed for user " + purchase.getUserId() + " on product " + purchase.getProductId() +
+                        String message = "Purchase completed for user " + purchase.getUserId() + " on product " + purchase.getProductId() +
                                 " priced at " + purchase.getPrice();
 
                         return new Alert(cartAdd.getUserSession(), cartAdd.getUserId(), AlertType.PURCHASE_COMPLETION, message);
@@ -164,7 +164,7 @@ public class EcommerceCEPRunner {
             @Override
             public Alert select(Map<String, List<ClickEvent>> pattern) {
                 ClickEvent initialView = pattern.get("initial_view").get(0);
-                var message = "High purchase intent detected for user " + initialView.getUserId() +
+                String message = "High purchase intent detected for user " + initialView.getUserId() +
                         " on product " + initialView.getProductId();
 
                 return new Alert(initialView.getUserSession(), initialView.getUserId(), AlertType.PRICE_SENSITIVITY, message);
@@ -202,7 +202,7 @@ public class EcommerceCEPRunner {
             @Override
             public Alert select(Map<String, List<ClickEvent>> pattern) {
                 ClickEvent initialView = pattern.get("initial_view").get(0);
-                var message = "Price-sensitive customer detected for user " + initialView.getUserId() +
+                String message = "Price-sensitive customer detected for user " + initialView.getUserId() +
                         " on product " + initialView.getProductId() + " after a price drop.";
                 return new Alert(initialView.getUserSession(), initialView.getUserId(), AlertType.PRICE_SENSITIVITY, message);
             }
@@ -226,14 +226,14 @@ public class EcommerceCEPRunner {
             @Override
             public Alert select(Map<String, List<ClickEvent>> pattern) {
                 ClickEvent firstView = pattern.get("first_view").get(0);
-                var message = "Churn risk detected for user " + firstView.getUserId() +
+                String message = "Churn risk detected for user " + firstView.getUserId() +
                         ": viewed multiple products over the week without making a purchase.";
                 return new Alert(firstView.getUserSession(), firstView.getUserId(), AlertType.CHURN_RISK, message);
             }
         }).name("ChurnPredictionAlertsPattern").uid("ChurnPredictionAlertsPattern");
 
         // 5. Union all the Streams
-        var alertStream = crossSellAlerts
+        DataStream<Alert> alertStream = crossSellAlerts
                 .union(
                         abandonedmentAlert,
                         priceSensitivityAlerts,
@@ -241,11 +241,15 @@ public class EcommerceCEPRunner {
                         churnPredictionAlerts
                 );
 
-        // 6. Create a Kafka Sink and Sink the Alerts
-        KafkaSink<Alert> kafkaAlertSink = createKafkaAlertSink(properties);
-        alertStream.sinkTo(kafkaAlertSink);
+        // 6. (Optional) Convert to SingleOutputStreamOperator if needed
+        SingleOutputStreamOperator<Alert> alertStreamOperator = alertStream.map(alert -> alert);
 
-        // 7. Execute the pipeline
+        // 7. Create a Kafka Sink and Sink the Alerts
+        KafkaSink<Alert> kafkaAlertSink = createKafkaAlertSink(properties);
+        alertStreamOperator.sinkTo(kafkaAlertSink);
+
+
+        // 8. Execute the pipeline
         environment.execute("E-commerce CEP Patterns Alerting");
     }
 }

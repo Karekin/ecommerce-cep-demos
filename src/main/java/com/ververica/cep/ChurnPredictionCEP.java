@@ -40,7 +40,7 @@ public class ChurnPredictionCEP {
         StreamExecutionEnvironment environment =
                 StreamExecutionEnvironment.getExecutionEnvironment();
 
-        var properties = buildSecurityProps(new Properties());
+        Properties properties = buildSecurityProps(new Properties());
 
         KafkaSource<ClickEvent> clickstreamKafkaSource = createClickEventConsumer(properties);
 
@@ -68,7 +68,7 @@ public class ChurnPredictionCEP {
             @Override
             public Alert select(Map<String, List<ClickEvent>> pattern) {
                 ClickEvent firstView = pattern.get("first_view").get(0);
-                var message = "Churn risk detected for user " + firstView.getUserId() +
+                String message = "Churn risk detected for user " + firstView.getUserId() +
                         ": viewed multiple products over the week without making a purchase.";
                 return new Alert(firstView.getUserSession(), firstView.getUserId(), AlertType.CHURN_RISK, message);
             }

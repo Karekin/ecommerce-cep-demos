@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.stream.Stream;
 
 import static com.ververica.utils.StreamingUtils.closeProducer;
@@ -25,18 +26,18 @@ public class ClickEventProducer {
                 .loadDataFile("/data/events.csv")
                 .map(DataSourceUtils::toClickEvent);
 
-        var properties = AppConfig.buildProducerProps();
+        Properties properties = AppConfig.buildProducerProps();
         properties.put(ProducerConfig.BATCH_SIZE_CONFIG, "64000");
         properties.put(ProducerConfig.LINGER_MS_CONFIG, "20");
         properties.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");
 
         logger.info("Starting Kafka Producer  ...");
 
-        var eventProducer = new KafkaProducer<String, ClickEvent>(properties);
+        KafkaProducer eventProducer = new KafkaProducer<String, ClickEvent>(properties);
 
         logger.info("Generating click events ...");
 
-        var count = 0;
+        int count = 0;
         for (Iterator<ClickEvent> it = events.iterator(); it.hasNext(); ) {
             ClickEvent clickEvent = it.next();
 

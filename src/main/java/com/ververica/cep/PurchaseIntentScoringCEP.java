@@ -30,7 +30,7 @@ public class PurchaseIntentScoringCEP {
         StreamExecutionEnvironment environment =
                 StreamExecutionEnvironment.getExecutionEnvironment();
 
-        var properties = buildSecurityProps(new Properties());
+        Properties properties = buildSecurityProps(new Properties());
 
         KafkaSource<ClickEvent> clickstreamKafkaSource = createClickEventConsumer(properties);
 
@@ -63,7 +63,7 @@ public class PurchaseIntentScoringCEP {
             @Override
             public Alert select(Map<String, List<ClickEvent>> pattern) {
                 ClickEvent initialView = pattern.get("initial_view").get(0);
-                var message = "High purchase intent detected for user " + initialView.getUserId() +
+                String message = "High purchase intent detected for user " + initialView.getUserId() +
                         " on product " + initialView.getProductId();
 
                 return new Alert(initialView.getUserSession(), initialView.getUserId(), AlertType.PRICE_SENSITIVITY, message);

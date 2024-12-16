@@ -21,7 +21,7 @@ public class StreamingUtils {
             = LoggerFactory.getLogger(StreamingUtils.class);
 
     public static <K,V> void handleMessage(KafkaProducer<K, V> producer, String topic, K key, V value) {
-        var record = new ProducerRecord(topic, key, value);
+        ProducerRecord record = new ProducerRecord(topic, key, value);
         producer.send(record, (metadata, exception) -> {
             if (exception !=null) {
                 logger.error("Error while producing: ", exception);

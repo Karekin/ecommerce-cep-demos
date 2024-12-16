@@ -31,7 +31,7 @@ public class CrossSellOpCEP {
         StreamExecutionEnvironment environment =
                 StreamExecutionEnvironment.getExecutionEnvironment();
 
-        var properties = buildSecurityProps(new Properties());
+        Properties properties = buildSecurityProps(new Properties());
 
         KafkaSource<ClickEvent> clickstreamKafkaSource = createClickEventConsumer(properties);
 
@@ -71,7 +71,7 @@ public class CrossSellOpCEP {
 
                 // Check if the categories are different
                 if (!firstView.getCategoryCode().equals(secondView.getCategoryCode())) {
-                    var message = "Cross-sell opportunity detected for user " + firstView.getUserId() +
+                    String message = "Cross-sell opportunity detected for user " + firstView.getUserId() +
                             ": viewed products in categories " + firstView.getCategoryCode() + " and " + secondView.getCategoryCode();
 
                     return new Alert(secondView.getUserSession(), secondView.getUserId(), AlertType.CROSS_UPSELL, message);

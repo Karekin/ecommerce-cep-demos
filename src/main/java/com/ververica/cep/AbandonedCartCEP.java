@@ -37,7 +37,7 @@ public class AbandonedCartCEP {
         StreamExecutionEnvironment environment =
                 StreamExecutionEnvironment.getExecutionEnvironment();
 
-        var properties = buildSecurityProps(new Properties());
+        Properties properties = buildSecurityProps(new Properties());
 
         // 1 Create Kafka/Flink Consumer
         KafkaSource<ClickEvent> clickstreamKafkaSource = KafkaSource.<ClickEvent>builder()
@@ -82,7 +82,7 @@ public class AbandonedCartCEP {
                     public Alert timeout(Map<String, List<ClickEvent>> pattern, long timeoutTimestamp) {
                         ClickEvent cartAdd = pattern.get("cart_add").get(0);
 
-                        var message = "High-value cart abandonment detected for user '" + cartAdd.getUserId() + "' priced at " + cartAdd.getPrice() +
+                        String message = "High-value cart abandonment detected for user '" + cartAdd.getUserId() + "' priced at " + cartAdd.getPrice() +
                                 ". No purchase within 30 minutes.";
 
                         return new Alert(cartAdd.getUserSession(), cartAdd.getUserId(), AlertType.CART_ABANDONMENT, message);
@@ -93,7 +93,7 @@ public class AbandonedCartCEP {
                         ClickEvent cartAdd = pattern.get("cart_add").get(0);
                         ClickEvent purchase = pattern.get("purchase").get(0);
 
-                        var message = "Purchase completed for user " + purchase.getUserId() + " on product " + purchase.getProductId() +
+                        String message = "Purchase completed for user " + purchase.getUserId() + " on product " + purchase.getProductId() +
                                 " priced at " + purchase.getPrice();
 
                         return new Alert(cartAdd.getUserSession(), cartAdd.getUserId(), AlertType.PURCHASE_COMPLETION, message);
